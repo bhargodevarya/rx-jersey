@@ -1,9 +1,11 @@
 package net.winterly.rxjersey.server;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.server.spi.internal.ResourceMethodDispatcher;
 import org.glassfish.jersey.server.spi.internal.ResourceMethodInvocationHandlerProvider;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
@@ -22,10 +24,13 @@ public final class RxJerseyServerFeature implements Feature {
         return this;
     }
 
+    @Inject
+    private InjectionManager injectionManager;
+
     @Override
     public boolean configure(FeatureContext context) {
         context.register(RxBodyWriter.class);
-        context.register(new Binder());
+        injectionManager.register(new Binder());
         return true;
     }
 

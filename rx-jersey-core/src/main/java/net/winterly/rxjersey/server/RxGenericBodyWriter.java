@@ -43,8 +43,12 @@ public abstract class RxGenericBodyWriter implements MessageBodyWriter<Object> {
      * @return the raw type without generics
      */
     private static Class raw(Type genericType) {
-        final ParameterizedType parameterizedType = (ParameterizedType) genericType;
-        return (Class) parameterizedType.getRawType();
+        if(genericType instanceof ParameterizedType) {
+            final ParameterizedType parameterizedType = (ParameterizedType) genericType;
+            return (Class) parameterizedType.getRawType();
+        }
+
+        return (Class) genericType;
     }
 
     /**
@@ -52,8 +56,12 @@ public abstract class RxGenericBodyWriter implements MessageBodyWriter<Object> {
      * @return first type from generic list
      */
     private static Type actual(Type genericType) {
-        final ParameterizedType actualGenericType = (ParameterizedType) genericType;
-        return actualGenericType.getActualTypeArguments()[0];
+        if(genericType instanceof ParameterizedType) {
+            final ParameterizedType actualGenericType = (ParameterizedType) genericType;
+            return actualGenericType.getActualTypeArguments()[0];
+        }
+
+        return Object.class;
     }
 
     @Override
@@ -73,7 +81,11 @@ public abstract class RxGenericBodyWriter implements MessageBodyWriter<Object> {
             throws IOException, WebApplicationException {
 
         final Type actualTypeArgument = actual(genericType);
-        final MessageBodyWriter writer = workers.get().getMessageBodyWriter(entity.getClass(), actualTypeArgument, annotations, mediaType);
+        final MessageBodyWriter writer = workers.get().getMessageBodyWriter((Class) actualTypeArgument, actualTypeArgument, annotations, mediaType);
+
+        if (writer == null) {
+            return;
+        }
 
         writer.writeTo(entity, entity.getClass(), actualTypeArgument, annotations, mediaType, httpHeaders, entityStream);
     }
